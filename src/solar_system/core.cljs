@@ -1,6 +1,9 @@
 (ns solar-system.core
-  (:require [reagent.core :as reagent :refer [atom]]))
-            ; [clojure.core :refer [struct]]))
+  (:require [reagent.core :as reagent :refer [atom]]
+            [physics.vector :as vector]
+            [physics.object :as object]
+            [physics.position :as position])
+  (:refer-clojure :exclude (vector)))
 
 ;;https://github.com/unclebob/clojureOrbit
 
@@ -16,11 +19,17 @@
 (def UNIT 0.001)
 (def SOLAR-SYSTEM-SIZE 10)
 
+(defn create-world []
+  (let [v0 (vector/make)
+        sun (object/make center 1500 (vector/make 0 0) v0 "sun")]
+    (loop [world [sun] n 400]
+      (if (zero? n)
+        world
+        (recur (conj world (random-object sun n)) (dec n))))))
+
 (defonce time-updater (js/setInterval
                        #(swap! app-state assoc-in [:position] (+ (:position @app-state) UNIT)) 16))
 
-(defn gravity [m1 m2 r]
-  (/ (* m1 m2) (* r r)))
 
 
 
@@ -47,4 +56,5 @@
   ;; optionally touch your app-state to force rerendering depending on
   ;; your application
   ;; (swap! app-state update-in [:__figwheel_counter] inc)
-  (prn "-------" @app-state))
+  (prn "-------" @app-state)
+  (prn (create-world)))

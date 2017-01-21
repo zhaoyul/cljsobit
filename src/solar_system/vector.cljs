@@ -1,8 +1,8 @@
 (ns physics.vector
-  (:refer-clojure :exclude (vector))
-  (:require [physics.position :as position])
-  (:import physics.position.position))
+  ; (:require [physics.position :as position :refer position])
+  (:refer-clojure :exclude (vector)))
 
+(defrecord position [^double x ^double y])
 
 (defn make
   ([]    (position. 0 0))
