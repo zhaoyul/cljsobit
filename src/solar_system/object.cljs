@@ -1,15 +1,15 @@
-(ns physics.object
+(ns physics.star
   (:refer-clojure :exclude (merge))
   (:require [physics.position :as position]
             [physics.vector :as vector]))
 
-(defrecord object [position ^double mass velocity force name])
+(defrecord star [position ^double mass velocity force name])
 
 (defn make
   ([]
-   (object. (position/make) 0 (vector/make) (vector/make) "TILT"))
+   (star. (position/make) 0 (vector/make) (vector/make) "TILT"))
   ([position mass velocity force name]
-   (object. position mass velocity force name)))
+   (star. position mass velocity force name)))
 
 (defn gravity [m1 m2 r]
   (/ (* m1 m2) (* r r)))

@@ -1,6 +1,6 @@
 (ns physics.vector
-  ; (:require [physics.position :as position :refer position])
-  (:refer-clojure :exclude (vector)))
+  (:require [physics.position :as position :refer [position]]))
+  ; (:refer-clojure :exclude (vector)))
 
 (defrecord position [^double x ^double y])
 
