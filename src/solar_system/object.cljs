@@ -95,4 +95,7 @@
 
 (defn update-all [world]
   (let [[collisions collided-world] (collide-all world)]
-    [collisions (-> collided-world calculate-forces-on-all accelerate-all reposition-all)]))
+    [collisions (-> collided-world
+                    calculate-forces-on-all
+                    accelerate-all
+                    reposition-all)]))

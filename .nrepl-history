@@ -1,0 +1,13 @@
+(defrecord Person [fname lname address])
+(defrecord Address [street city state zip])
+(def stu (Person. "Stu" "Halloway"
+           (Address. "200 N Mangum"
+                      "Durham"
+                      "NC"
+                      27701)))
+stu
+(stu :address
+)
+(:address stu)
+(stu :address)
+(stu :lname)
