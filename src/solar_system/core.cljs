@@ -39,7 +39,7 @@
 (defn create-world []
   (let [v0 (vector/make)
         sun (star/make CENTER 1500 (vector/make 0 0) v0 "sun")]
-    (loop [world [sun] n 200]
+    (loop [world [sun] n 20]
       (if (zero? n)
         world
         (recur (conj world (random-star sun n)) (dec n))))))
@@ -47,17 +47,33 @@
 (defonce app-state (atom {:text "我的太阳系!"
                           :my-world (create-world)}))
 
+(defonce orbit-history (atom []))
 
+
+(defn main-svg []
+  [:svg {:view-box [0 0 SOLAR-SYSTEM-SIZE SOLAR-SYSTEM-SIZE]
+         :width 500
+         :height 500}])
+
+(defn all-stars []
+  (for [star (:my-world @app-state)]
+   [:circle {:r 5
+             :cx (get-in star [:position :x])
+             :cy (get-in star [:position :y])}]))
+
+(defn all-history []
+  (for [orbit-point @orbit-history]
+   [:circle {:r 2
+             :cx (get-in orbit-point [:x])
+             :cy (get-in orbit-point [:y])}]))
 
 (defn body []
-  (into
-    [:svg {:view-box [0 0 SOLAR-SYSTEM-SIZE SOLAR-SYSTEM-SIZE]
-           :width 500
-           :height 500}]
-    (for [star (:my-world @app-state)]
-     [:circle {:r 5
-               :cx (get-in star [:position :x])
-               :cy (get-in star [:position :y])}])))
+  ; (into
+  ;     (main-svg)
+  ;     (all-stars))
+  (-> (main-svg)
+      (into (all-stars))))
+      ; (into (all-history))))
 
 
 (defn solar []
@@ -68,15 +84,22 @@
 (reagent/render-component [solar]
                           (. js/document (getElementById "app")))
 
-(defonce time-updater (js/setInterval
-                       #(swap! app-state assoc-in [:my-world] (vec (second (star/update-all (:my-world @app-state)))))
+(defn run-loop []
+  (let [new-world (vec (second (star/update-all (:my-world @app-state))))
+        orbit-point (map #(get-in % [:position]) new-world)
+        history (into @orbit-history orbit-point)]
+    (swap! app-state assoc-in [:my-world] new-world)
+    (reset! orbit-history history)))
+
+(defonce time-updater (js/setInterval run-loop
                        20))
 
-(defn on-js-reload []
+(defn on-js-reload [])
   ;; optionally touch your app-state to force rerendering depending on
   ;; your application
   ;; (swap! app-state update-in [:__figwheel_counter] inc)
   ; (prn "-------" (:my-world @app-state))
 
   ; (pprint @app-state)
-  ; (pprint (vec (second (star/update-all (:my-world @app-state))))))
+  ; (pprint (vec (second (star/update-all (:my-world @app-state)))))
+  ; (pprint @orbit-history))
