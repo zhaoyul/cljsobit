@@ -3,7 +3,11 @@
   (:require [physics.position :as position]
             [physics.vector :as vector]))
 
-(defrecord star [position ^double mass velocity force name])
+(defrecord star [position
+                 ^double mass
+                 velocity
+                 force
+                 name])
 
 (defn make
   ([]

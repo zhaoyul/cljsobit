@@ -34,12 +34,13 @@
 (defn random-star [sun n]
   (let [sp (:position sun)
         p (random-position sp)]
-    (star/make p (rand 0.2) (random-velocity p sun) (vector/make) (str "r" n))))
+    (star/make p (rand 20) (random-velocity p sun) (vector/make) (str "r" n))))
 
 (defn create-world []
   (let [v0 (vector/make)
-        sun (star/make CENTER 1500 (vector/make 0 0) v0 "sun")]
-    (loop [world [sun] n 20]
+        sun (star/make CENTER 2000 (vector/make 0 0) v0 "sun")]
+    (loop [world [sun]
+           n 20]
       (if (zero? n)
         world
         (recur (conj world (random-star sun n)) (dec n))))))
@@ -55,31 +56,40 @@
          :width 500
          :height 500}])
 
+(defn redius-for-star [star]
+  (let [redius-const 5]
+    (* redius-const (Math/pow (get-in star [:mass])
+                              (/ 1 3))))
+  )
+
+
 (defn all-stars []
   (for [star (:my-world @app-state)]
-   [:circle {:r 5
-             :cx (get-in star [:position :x])
-             :cy (get-in star [:position :y])}]))
+                                        ;  [:circle {:r (* 5 (Math/pow (get-in star [:mass]) (/ 1 3)))}]
+    [:circle {:r (redius-for-star star)
+              :fill "red"
+              :cx (get-in star [:position :x])
+              :cy (get-in star [:position :y])}]))
+
 
 (defn all-history []
   (for [orbit-point @orbit-history]
-   [:circle {:r 2
-             :cx (get-in orbit-point [:x])
-             :cy (get-in orbit-point [:y])}]))
+    [:circle {:r 2
+              :cx (get-in orbit-point [:x])
+              :cy (get-in orbit-point [:y])}]))
+
 
 (defn body []
-  ; (into
-  ;     (main-svg)
-  ;     (all-stars))
   (-> (main-svg)
-      (into (all-stars))))
-      ; (into (all-history))))
+      (into (all-stars))
+      #_(into (all-history))))
+
 
 
 (defn solar []
   [:center
-    [:h1 (:text @app-state)]
-    [body]])
+   [:h1 (:text @app-state)]
+   [body]])
 
 (reagent/render-component [solar]
                           (. js/document (getElementById "app")))
