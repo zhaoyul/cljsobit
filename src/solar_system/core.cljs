@@ -3,10 +3,10 @@
             [physics.vector :as vector]
             [physics.star :as star]
             [physics.position :as position]
-            [clojure.pprint :refer [pprint]])
+            [clojure.pprint :refer [pprint]]
+            [cljs.core.async :refer [go-loop <!]])
   (:refer-clojure :exclude (vector)))
 
-;;https://github.com/unclebob/clojureOrbit
 
 (enable-console-print!)
 
@@ -15,7 +15,11 @@
 ;; define your app data so that it doesn't get over-written on reload
 
 
-(def UNIT 0.1)
+(go-loop []
+  (let [x (<! star/audio-chan)]
+    (println "Got a value in this loop:" x))
+  )
+
 (def SOLAR-SYSTEM-SIZE 1000)
 (def CENTER (position/make (/ SOLAR-SYSTEM-SIZE 2.0) (/ SOLAR-SYSTEM-SIZE 2.0)))
 
@@ -34,13 +38,13 @@
 (defn random-star [sun n]
   (let [sp (:position sun)
         p (random-position sp)]
-    (star/make p (rand 20) (random-velocity p sun) (vector/make) (str "r" n))))
+    (star/make p (rand 5) (random-velocity p sun) (vector/make) (str "r" n))))
 
 (defn create-world []
   (let [v0 (vector/make)
         sun (star/make CENTER 2000 (vector/make 0 0) v0 "sun")]
     (loop [world [sun]
-           n 20]
+           n 10]
       (if (zero? n)
         world
         (recur (conj world (random-star sun n)) (dec n))))))
@@ -50,6 +54,9 @@
 
 (defonce orbit-history (atom []))
 
+(defn reset-orbit []
+  (reset! orbit-history []))
+
 
 (defn main-svg []
   [:svg {:view-box [0 0 SOLAR-SYSTEM-SIZE SOLAR-SYSTEM-SIZE]
@@ -57,7 +64,7 @@
          :height 500}])
 
 (defn redius-for-star [star]
-  (let [redius-const 5]
+  (let [redius-const 2]
     (* redius-const (Math/pow (get-in star [:mass])
                               (/ 1 3))))
   )
@@ -65,16 +72,18 @@
 
 (defn all-stars []
   (for [star (:my-world @app-state)]
-                                        ;  [:circle {:r (* 5 (Math/pow (get-in star [:mass]) (/ 1 3)))}]
     [:circle {:r (redius-for-star star)
-              :fill "red"
+              :fill (if (clojure.string/includes?  (:name star) "sun")
+                      "yellow"
+                      "white")
               :cx (get-in star [:position :x])
               :cy (get-in star [:position :y])}]))
 
 
 (defn all-history []
   (for [orbit-point @orbit-history]
-    [:circle {:r 2
+    [:circle {:r 1
+              :fill "white"
               :cx (get-in orbit-point [:x])
               :cy (get-in orbit-point [:y])}]))
 
@@ -84,11 +93,14 @@
       (into (all-stars))
       #_(into (all-history))))
 
+(defn play-audio []
+  (.play (.getElementById js/document "play")))
 
 
 (defn solar []
   [:center
    [:h1 (:text @app-state)]
+   [:audio {:id "play" :src "explosion.mp3"}]
    [body]])
 
 (reagent/render-component [solar]
@@ -102,7 +114,7 @@
     (reset! orbit-history history)))
 
 (defonce time-updater (js/setInterval run-loop
-                       20))
+                                      50))
 
 (defn on-js-reload [])
   ;; optionally touch your app-state to force rerendering depending on
