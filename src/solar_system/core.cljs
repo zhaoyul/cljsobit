@@ -1,10 +1,11 @@
 (ns solar-system.core
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [reagent.core :as reagent :refer [atom]]
             [physics.vector :as vector]
             [physics.star :as star]
             [physics.position :as position]
             [clojure.pprint :refer [pprint]]
-            [cljs.core.async :refer [go-loop <!]])
+            [cljs.core.async :refer [ <!]])
   (:refer-clojure :exclude (vector)))
 
 
@@ -15,10 +16,7 @@
 ;; define your app data so that it doesn't get over-written on reload
 
 
-(go-loop []
-  (let [x (<! star/audio-chan)]
-    (println "Got a value in this loop:" x))
-  )
+
 
 (def SOLAR-SYSTEM-SIZE 1000)
 (def CENTER (position/make (/ SOLAR-SYSTEM-SIZE 2.0) (/ SOLAR-SYSTEM-SIZE 2.0)))
@@ -44,7 +42,7 @@
   (let [v0 (vector/make)
         sun (star/make CENTER 2000 (vector/make 0 0) v0 "sun")]
     (loop [world [sun]
-           n 10]
+           n 100]
       (if (zero? n)
         world
         (recur (conj world (random-star sun n)) (dec n))))))
@@ -66,8 +64,7 @@
 (defn redius-for-star [star]
   (let [redius-const 2]
     (* redius-const (Math/pow (get-in star [:mass])
-                              (/ 1 3))))
-  )
+                              (/ 1 3)))))
 
 
 (defn all-stars []
@@ -96,6 +93,11 @@
 (defn play-audio []
   (.play (.getElementById js/document "play")))
 
+
+(go-loop []
+  (let [x (<! star/audio-chan)]
+    (play-audio))
+  (recur))
 
 (defn solar []
   [:center

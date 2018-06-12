@@ -2,7 +2,7 @@
   (:refer-clojure :exclude (merge))
   (:require [physics.position :as position]
             [physics.vector :as vector]
-            [cljs.core.async :as async]))
+            [cljs.core.async :refer [chan put!]]))
 
 (defrecord star [position
                  ^double mass
@@ -10,7 +10,7 @@
                  force
                  name])
 
-(def audio-chan (async/chan))
+(def audio-chan (chan))
 
 (defn make
   ([]
@@ -63,8 +63,7 @@
         distance (position/distance p1 p2)
         radius (Math/sqrt mass)]
     (if (>= (max 3 radius) distance)
-      (do (async/put! audio-chan "1")
-          (prn "----")
+      (do (put! audio-chan "1")
           true))))
 
 (defn center-of-mass [{p1 :position, m1 :mass}
